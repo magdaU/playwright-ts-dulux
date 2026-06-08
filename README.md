@@ -14,6 +14,8 @@ risk-based prioritisation, and what's intentionally out of scope.
 ## Project structure
 
 ```
+Dockerfile          # Containerised suite, based on mcr.microsoft.com/playwright (see "Running with Docker")
+.dockerignore       # Keeps node_modules, test artifacts, etc. out of the build context
 tests/
 ├── pages/            # Page objects (HomePage, ColorSelectionPage, CartPage, ...)
 ├── components/       # Shared UI components (NavigationComponent, AlertComponent)
@@ -31,6 +33,20 @@ tests/
 ```bash
 npm install
 npx playwright install --with-deps chromium
+```
+
+### Running with Docker
+
+No local Node/browser setup needed — [`Dockerfile`](Dockerfile) is based on Microsoft's official
+[`mcr.microsoft.com/playwright`](https://mcr.microsoft.com/en-us/product/playwright/about) image, which ships
+Node.js and browsers pre-installed and version-matched to `@playwright/test`, so the container needs no
+`playwright install` step of its own.
+
+```bash
+docker build -t dulux-e2e .
+docker run --rm dulux-e2e                                    # run the full suite (api + desktop + mobile)
+docker run --rm dulux-e2e npx playwright test --project=api  # just the API checks
+docker run --rm dulux-e2e npx playwright test --grep @smoke  # just the smoke tests
 ```
 
 ## Running tests
@@ -178,6 +194,7 @@ flakiness from a real, uncontrolled production site.
 - Page Object Model
 - [Allure Report](https://allurereport.org/) — test reporting (`allure-playwright`, `allure-commandline`)
 - GitHub Actions CI + GitHub Pages — automated runs and published Allure reports
+- [Docker](https://www.docker.com/) — containerised suite via the official `mcr.microsoft.com/playwright` image (see [`Dockerfile`](Dockerfile))
 
 ## Common Playwright building blocks — where they're used here
 
