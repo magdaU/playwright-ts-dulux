@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
     inputs:
       grep:
-        description: "Tag expression to run (e.g. @smoke)"
+        description: "Tag expression to run (e.g. @smoke, @regression, @desktop)"
         required: false
-        default: "@smoke"
+        default: "@regression"
 
 permissions:
   contents: write   # required by peaceiris/actions-gh-pages to push to gh-pages branch
@@ -40,7 +40,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: npx playwright test --grep "${{ github.event.inputs.grep || '@smoke' }}"
+        run: npx playwright test --grep "${{ github.event.inputs.grep || '@regression' }}"
 
       - name: Upload Playwright report
         if: always()
