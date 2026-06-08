@@ -11,7 +11,8 @@
     "test:api": "playwright test --project=api",
     "test:trace": "playwright test --trace on",
     "report": "playwright show-report",
-    "allure:generate": "allure generate allure-results --clean -o allure-report",
+    "allure:categories": "node -e \"require('fs').mkdirSync('allure-results',{recursive:true});require('fs').copyFileSync('allure/categories.json','allure-results/categories.json')\"",
+    "allure:generate": "npm run allure:categories && allure generate allure-results --clean -o allure-report",
     "allure:open": "allure open allure-report",
     "allure:serve": "allure serve allure-results"
   },

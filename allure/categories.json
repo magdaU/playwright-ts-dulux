@@ -1,0 +1,25 @@
+[
+  {
+    "name": "Product defects",
+    "description": "A web-first assertion failed — the live site behaved differently than the journey expects (e.g. missing element, wrong basket contents).",
+    "matchedStatuses": ["failed"],
+    "messageRegex": "(?s).*Expected.*"
+  },
+  {
+    "name": "Test / locator defects",
+    "description": "The test itself broke outside an assertion — often a locator that no longer resolves after a markup change on the site.",
+    "matchedStatuses": ["broken"]
+  },
+  {
+    "name": "Timeouts",
+    "description": "An action or navigation exceeded its timeout — frequently transient noise from testing a live, uncontrolled production site rather than a real defect.",
+    "matchedStatuses": ["failed", "broken"],
+    "messageRegex": "(?s).*[Tt]imeout.*exceeded.*"
+  },
+  {
+    "name": "Flaky (passed on retry)",
+    "description": "The test failed at least once but passed on retry — the run is green, but worth keeping an eye on for emerging instability.",
+    "matchedStatuses": ["passed"],
+    "flaky": true
+  }
+]
