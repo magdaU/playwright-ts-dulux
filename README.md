@@ -166,7 +166,8 @@ flakiness from a real, uncontrolled production site.
 ## Common Playwright building blocks — where they're used here
 
 The table below maps the concepts that show up in most Playwright projects to where each one is actually
-applied in this repo (or planned, if not yet implemented).
+applied in this repo. Every concept listed here is implemented — each one was built out on its own
+feature branch, one concept at a time, so the table doubles as a tour of the project's history.
 
 | Concept | Where it's applied | Notes |
 |---|---|---|
