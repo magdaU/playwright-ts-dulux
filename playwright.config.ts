@@ -9,6 +9,11 @@ export default defineConfig({
   reporter: [
     ['html', { open: 'never' }],
     ['list'],
+    ['allure-playwright', {
+      resultsDir: 'allure-results',
+      detail: true,
+      suiteTitle: false,
+    }],
   ],
   use: {
     baseURL: 'https://www.dulux.co.uk',
