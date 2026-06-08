@@ -27,8 +27,23 @@ npm run test:headed     # run with a visible browser
 npm run test:smoke      # run tests tagged @smoke
 npm run test:desktop    # run only the desktop-chrome project
 npm run test:mobile     # run only the mobile-chrome project
-npm run report          # open the last HTML report
+npm run report          # open the last Playwright HTML report
 ```
+
+## Allure reporting
+
+Test runs are also recorded as [Allure](https://allurereport.org/) results (via `allure-playwright`) for richer
+reporting — history, severity, steps and attachments per test.
+
+```bash
+npm test                  # generates raw results into allure-results/
+npm run allure:generate   # builds the static HTML report into allure-report/
+npm run allure:open       # opens the generated report in a browser
+npm run allure:serve      # generates and serves the report in one step
+```
+
+In CI, the Allure report is generated after every run, uploaded as a build artifact, and (on `main`) published to
+GitHub Pages via the `gh-pages` branch.
 
 ## Test cases
 

@@ -16,6 +16,9 @@ on:
         required: false
         default: "@smoke"
 
+permissions:
+  contents: write   # required by peaceiris/actions-gh-pages to push to gh-pages branch
+
 jobs:
   playwright-tests:
     name: Playwright tests
@@ -46,3 +49,24 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+      - name: Generate Allure report
+        if: always()
+        run: npm run allure:generate
+
+      - name: Upload Allure results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results/
+          retention-days: 7
+
+      - name: Deploy Allure report to GitHub Pages
+        if: always() && github.ref == 'refs/heads/main'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+          publish_branch: gh-pages
+          commit_message: "ci: publish Allure report [skip ci]"
