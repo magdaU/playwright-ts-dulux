@@ -42,7 +42,9 @@ npm run test:smoke                    # run tests tagged @smoke
 npm run test:desktop                  # run only the desktop-chrome project
 npm run test:mobile                   # run only the mobile-chrome project
 npm run test:api                      # run only the API precondition checks (no browser)
+npm run test:trace                    # force a full trace for every test (for debugging/Trace Viewer demos)
 npm run report                        # open the last Playwright HTML report
+npx playwright show-trace <path>      # open a captured trace.zip in the Trace Viewer
 ```
 
 ## Allure reporting
@@ -123,6 +125,13 @@ A reference suite (no purchase flow) that demonstrates the locator and assertion
 3. **Count assertions** — assert how many "Bathroom" buttons and list items appear on the page (`toHaveCount`).
 4. **Page-level assertions** — navigate to the colour finder and assert the URL and title update (`toHaveURL`, `toHaveTitle`), auto-retrying until the navigation settles.
 
+### Trace Viewer & parallel tests showcase
+`tests/specs/showcase/trace-and-parallel.spec.ts` (`@showcase @regression @desktop`)
+
+Two independent, single-step checks (home page navigation, empty cart) used to demonstrate:
+1. **Trace Viewer** — `test.use({ trace: 'on' })` forces a full trace for every run of this file (rather than the project-wide `on-first-retry`), and each test is broken into named `test.step()` actions so the recording is easy to follow in `npx playwright show-trace`.
+2. **Parallel Tests** — `test.describe.configure({ mode: 'parallel' })` marks the two tests as independent so Playwright runs them concurrently across workers, on top of the project-wide `fullyParallel: true` default.
+
 ## Tech stack
 
 - [Playwright Test](https://playwright.dev/docs/intro) — test runner & browser automation
@@ -144,7 +153,7 @@ applied in this repo (or planned, if not yet implemented).
 | **API Setup** | `tests/specs/setup/api-setup.spec.ts`, runs in its own `api` project (no browser) | Uses Playwright's `request` fixture / `APIRequestContext` to verify the home page and cart page respond with a 2xx **before** the full UI journey runs — a fast precondition check that doesn't need a browser |
 | **Locators** | `tests/pages/*.ts`, `tests/components/*.ts`, showcased end-to-end in `tests/specs/showcase/locators-and-assertions.spec.ts` | Role/text-first locators: `getByRole`, `getByText`, plus `filter({ hasText })` and chaining (e.g. `ColorSelectionPage.openVisualizerApp()`) |
 | **Assertions** | `tests/specs/purchase/tester-product.spec.ts`, `tests/specs/showcase/locators-and-assertions.spec.ts` | Web-first, auto-retrying assertions: `toBeVisible()`, `toBeEnabled()`, `toHaveText()`, `toHaveValue()`, `toHaveCount()`, and page-level `toHaveURL()` / `toHaveTitle()` |
-| **Trace Viewer** | `playwright.config.ts` (`trace: 'on-first-retry'`, `screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`) | Traces are captured on retry and uploaded as part of the Playwright HTML report in CI for failure diagnosis (`npx playwright show-trace`) |
-| **Parallel Tests** | `playwright.config.ts` (`fullyParallel: true`, `workers: process.env.CI ? 2 : undefined`) | Desktop and mobile projects also run as independent, parallel jobs by default |
+| **Trace Viewer** | `playwright.config.ts` (`trace: 'on-first-retry'`, `screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`); showcased in `tests/specs/showcase/trace-and-parallel.spec.ts` (`test.use({ trace: 'on' })` + `test.step()`), runnable via `npm run test:trace` | Traces are captured on retry by default (and uploaded as part of the Playwright HTML report in CI for failure diagnosis), or forced for every run with `--trace on` when you actually want to inspect one (`npx playwright show-trace`) |
+| **Parallel Tests** | `playwright.config.ts` (`fullyParallel: true`, `workers: process.env.CI ? 2 : undefined`); showcased in `tests/specs/showcase/trace-and-parallel.spec.ts` (`test.describe.configure({ mode: 'parallel' })`) | Desktop and mobile projects run as independent, parallel jobs by default, and independent tests within a single file can be marked safe to run concurrently too |
 
 See [TEST_STRATEGY.md](TEST_STRATEGY.md) for the reasoning behind these choices.
