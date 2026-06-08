@@ -30,7 +30,9 @@ outside, the way a real user would experience them.
 
 | Level | What it covers | Where it lives |
 |---|---|---|
-| E2E UI tests | Full user journeys through the real site, asserting on visible outcomes (basket contents, navigation, page transitions) | `tests/specs/**/*.spec.ts` |
+| E2E UI tests | Full user journeys through the real site, asserting on visible outcomes (basket contents, navigation, page transitions) | `tests/specs/purchase/**/*.spec.ts` |
+| API precondition checks (`@api`) | Fast, browser-less HTTP checks (via Playwright's `request` fixture) that key pages respond with a 2xx **before** the UI journeys run | `tests/specs/setup/*.spec.ts`, runs in its own `api` project |
+| Reference/showcase specs (`@showcase`) | Self-contained demos of the Playwright building blocks used across the suite (locators, assertions, storage state, trace viewer, parallel execution, test-runner config) — written for onboarding/reference, not customer-journey coverage | `tests/specs/showcase/**/*.spec.ts` |
 | Smoke (`@smoke`) | The smallest set of tests that prove the core journey still works — run first, fail fast | tagged subset of the above |
 | Regression (`@regression`) | The full suite for a feature area, run on every push/PR to `main` | tagged subset of the above |
 
@@ -49,6 +51,8 @@ original Cucumber/Java version of this suite, simplified to flat tags for the na
 | `@regression` | Full suite for a feature area | Run on `main` / before release |
 | `@desktop` / `@mobile` | Viewport-specific scenarios | Target a specific device class |
 | `@purchase`, `@visualizer` | Feature-area grouping | Run only the tests relevant to a change |
+| `@api` | Browser-less HTTP precondition checks | Fast first signal that key pages are up before the UI suite runs |
+| `@showcase` | Reference specs demonstrating a Playwright building block in isolation | Onboarding/reference reads — kept out of the risk-based prioritisation in [§10](#10-risk-based-prioritisation) since they don't cover a customer journey |
 
 Execution is filtered with `--grep`:
 
@@ -87,6 +91,10 @@ menu" scenario executing at 1920×1080).
   `createSetup()` pattern from the original Java suite with Playwright-native dependency injection.
 - **User-facing locators first:** `getByRole`, `getByLabel`, `getByText` are preferred over CSS/XPath so tests
   track what a user perceives (and stay stable across markup refactors on the Dulux side).
+- **Storage State for shared setup:** `tests/setup/global-setup.ts` accepts the cookie-consent banner **once**
+  via Playwright's `globalSetup` + `storageState`, persisting the decision to `playwright/.auth/storage-state.json`.
+  Every test then starts already past the consent banner — no repeated `rejectAllCookies()` calls cluttering
+  each journey's GIVEN step or adding an extra click (and potential flake point) to every run.
 - **Arrange / Act / Assert:** each test is structured as GIVEN (state setup, e.g. empty basket) → WHEN
   (the journey under test) → THEN (observable outcome + evidence screenshot).
 
@@ -105,7 +113,10 @@ menu" scenario executing at 1920×1080).
 
 - **Playwright HTML report** — generated every run (`playwright-report/`), with trace/video/screenshot capture
   on failure (`trace: on-first-retry`, `screenshot: only-on-failure`, `video: retain-on-failure`) for fast
-  failure diagnosis.
+  failure diagnosis. When actively investigating a flow rather than waiting for a failure/retry, `npm run
+  test:trace` (`--trace on`) forces a full trace for every test — see `tests/specs/showcase/trace-and-parallel.spec.ts`
+  for a per-file example (`test.use({ trace: 'on' })` + named `test.step()`s) that's easy to follow in
+  `npx playwright show-trace`.
 - **Allure report** — richer, stakeholder-friendly reporting (history, severities, suites, timeline) generated
   via `allure-playwright` + `allure-commandline`. Published automatically to **GitHub Pages** on every push to
   `main`:
@@ -151,6 +162,8 @@ the site as broken and stopping further investigation until fixed.
   navigation boundaries (e.g. after `clickDropdownFindColour()`, which triggers a real page navigation rather
   than a dropdown — a subtlety captured in a code comment so it isn't "fixed" away by mistake).
 - **Isolation:** every test gets its own `BrowserContext`/`page` via fixtures — no cross-test state leakage.
+  Storage state is the one deliberate exception: cookie consent is shared via `playwright/.auth/storage-state.json`
+  because it's identical for every journey, while basket/session state is still driven fresh per test.
 - **CI retries + trace/video on failure** turn intermittent production noise into actionable evidence rather
   than red herrings or silent flakiness.
 
@@ -161,3 +174,9 @@ the site as broken and stopping further investigation until fixed.
 - Add a Firefox/WebKit project if cross-browser risk is identified as material.
 - Consider visual regression checks (e.g. `toHaveScreenshot`) for high-traffic landing/colour-selection pages.
 - Track flaky-test trends via Allure history once the suite has run enough times on `main` to build a baseline.
+
+> The Playwright "building blocks" tour referenced in earlier drafts of this strategy — storage state, API
+> setup, locators & assertions, trace viewer, parallel execution, and test-runner config — is now complete,
+> each shipped as its own feature branch with a reference spec under `tests/specs/showcase/`. See the
+> [building-blocks table in the README](README.md#common-playwright-building-blocks--where-theyre-used-here)
+> for where each one lives.

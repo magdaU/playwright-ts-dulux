@@ -132,6 +132,29 @@ Two independent, single-step checks (home page navigation, empty cart) used to d
 1. **Trace Viewer** — `test.use({ trace: 'on' })` forces a full trace for every run of this file (rather than the project-wide `on-first-retry`), and each test is broken into named `test.step()` actions so the recording is easy to follow in `npx playwright show-trace`.
 2. **Parallel Tests** — `test.describe.configure({ mode: 'parallel' })` marks the two tests as independent so Playwright runs them concurrently across workers, on top of the project-wide `fullyParallel: true` default.
 
+### Test runner config showcase
+`tests/specs/showcase/test-runner-config.spec.ts` (`@showcase @regression @desktop`)
+
+Four independent checks demonstrating the per-test/per-suite knobs Playwright Test layers on top of `playwright.config.ts`:
+1. **Per-test timeout** — `test.setTimeout(60_000)` gives one slow check more time without changing the suite-wide default.
+2. **Conditional skip** — `test.skip(!!process.env.CI, reason)` skips an expensive check in CI (with the reason recorded in the report) while still running it locally.
+3. **Soft assertions** — `expect.soft()` checks the hero button, cart link and call-to-action in one pass and reports every failure, instead of stopping at the first.
+4. **Annotations** — `testInfo.annotations.push({ type, description })` attaches a note to the test that's visible in the HTML/Allure report.
+
+### Parallel Tests — summary
+
+Parallelism shows up at three levels in this project, smallest to largest:
+
+| Level | Mechanism | Where |
+|---|---|---|
+| Within a file | `test.describe.configure({ mode: 'parallel' })` opts independent tests in the same file into concurrent execution | `tests/specs/showcase/trace-and-parallel.spec.ts` |
+| Across a project | `fullyParallel: true` runs every test file in its own worker by default | `playwright.config.ts` |
+| Across projects | The `api`, `desktop-chrome` and `mobile-chrome` projects run side by side, each with its own browser/device/storage-state setup | `playwright.config.ts` `projects` |
+
+Locally, `workers` is left at Playwright's default (CPU-core based) for maximum speed; in CI it's capped at `2`
+(`workers: process.env.CI ? 2 : undefined`) to stay within the runner's resources, with `retries: 2` to absorb
+flakiness from a real, uncontrolled production site.
+
 ## Tech stack
 
 - [Playwright Test](https://playwright.dev/docs/intro) — test runner & browser automation
@@ -143,11 +166,12 @@ Two independent, single-step checks (home page navigation, empty cart) used to d
 ## Common Playwright building blocks — where they're used here
 
 The table below maps the concepts that show up in most Playwright projects to where each one is actually
-applied in this repo (or planned, if not yet implemented).
+applied in this repo. Every concept listed here is implemented — each one was built out on its own
+feature branch, one concept at a time, so the table doubles as a tour of the project's history.
 
 | Concept | Where it's applied | Notes |
 |---|---|---|
-| **Test runner** (Playwright Test — TS equivalent of JUnit/TestNG) | `playwright.config.ts`, every file in `tests/specs/**` | Native runner: `test.describe`, tagged `test()`, hooks via fixtures instead of `@BeforeEach`/`@AfterEach` |
+| **Test runner** (Playwright Test — TS equivalent of JUnit/TestNG) | `playwright.config.ts`, every file in `tests/specs/**`; per-test config knobs showcased in `tests/specs/showcase/test-runner-config.spec.ts` | Native runner: `test.describe`, tagged `test()`, hooks via fixtures instead of `@BeforeEach`/`@AfterEach`, plus `test.setTimeout()`, `test.skip(condition, reason)`, `expect.soft()` and `testInfo.annotations` for fine-grained per-test control |
 | **Browser Contexts** | `tests/fixtures.ts` (each test gets an isolated `page`/context from Playwright Test), `playwright.config.ts` `projects` (`desktop-chrome` vs `mobile-chrome` carry distinct viewport/device contexts) | No shared cookies/storage between tests — each journey starts clean |
 | **Storage State** | `tests/setup/global-setup.ts` + `playwright.config.ts` (`globalSetup`, `use.storageState`) | Cookie-consent is accepted **once** before the whole suite runs and persisted to `playwright/.auth/storage-state.json`; every test then starts already past the consent banner — no repeated `rejectAllCookies()` calls |
 | **API Setup** | `tests/specs/setup/api-setup.spec.ts`, runs in its own `api` project (no browser) | Uses Playwright's `request` fixture / `APIRequestContext` to verify the home page and cart page respond with a 2xx **before** the full UI journey runs — a fast precondition check that doesn't need a browser |
