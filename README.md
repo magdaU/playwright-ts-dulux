@@ -43,7 +43,9 @@ npm run allure:serve      # generates and serves the report in one step
 ```
 
 In CI, the Allure report is generated after every run, uploaded as a build artifact, and (on `main`) published to
-GitHub Pages via the `gh-pages` branch.
+GitHub Pages via the `gh-pages` branch. On push/PR, the workflow runs the full `@regression` suite (both the
+desktop and mobile scenarios) by default — `workflow_dispatch` lets you target a narrower tag, e.g. `@smoke`,
+via the `grep` input.
 
 ## Test cases
 
