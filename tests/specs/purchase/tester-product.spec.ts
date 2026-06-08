@@ -8,9 +8,8 @@ test.describe('Purchase a colour tester', { tag: ['@purchase', '@regression'] },
     'desktop customer adds a tester to the basket via the colour finder',
     { tag: ['@smoke', '@desktop'] },
     async ({ page, homePage, navigation, colorSelectionPage, cartPage, alert }) => {
-      // GIVEN
+      // GIVEN — cookie consent is already handled via storageState (see tests/setup/global-setup.ts)
       await cartPage.open();
-      await homePage.rejectAllCookies();
       await expect(cartPage.getBasketEmptyText()).toBeVisible();
 
       // WHEN
@@ -36,9 +35,8 @@ test.describe('Purchase a colour tester', { tag: ['@purchase', '@regression'] },
     'mobile customer adds a tester to the basket via the hamburger menu',
     { tag: ['@mobile'] },
     async ({ page, homePage, navigation, colorSelectionPage, cartPage, alert }) => {
-      // GIVEN
+      // GIVEN — cookie consent is already handled via storageState (see tests/setup/global-setup.ts)
       await cartPage.open();
-      await homePage.rejectAllCookies();
       await expect(cartPage.getBasketEmptyText()).toBeVisible();
 
       // WHEN

@@ -5,6 +5,7 @@ blob-report/
 allure-results/
 allure-report/
 playwright/.cache/
+playwright/.auth/
 screenshots/
 .idea/
 *.log
