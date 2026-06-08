@@ -20,10 +20,12 @@ export default defineConfig({
     {
       name: 'desktop-chrome',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1920, height: 1080 } },
+      grepInvert: /@mobile/,
     },
     {
       name: 'mobile-chrome',
       use: { ...devices['Pixel 7'] },
+      grep: /@mobile/,
     },
   ],
 });
