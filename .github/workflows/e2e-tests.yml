@@ -39,8 +39,47 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Checkout previous Allure report (for history/trend)
+        if: always()
+        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: previous-report
+
       - name: Run Playwright tests
         run: npx playwright test --grep "${{ github.event.inputs.grep || '@regression' }}"
+
+      - name: Restore Allure history for trend graphs
+        if: always()
+        run: |
+          mkdir -p allure-results/history
+          if [ -d previous-report/history ]; then
+            cp -r previous-report/history/. allure-results/history/
+          fi
+
+      - name: Write Allure environment & executor info
+        if: always()
+        run: |
+          cat > allure-results/environment.properties << 'EOF'
+          Base.URL=https://www.dulux.co.uk
+          Browsers=Chromium (desktop-chrome 1920x1080, mobile-chrome Pixel 7 emulation)
+          OS=${{ runner.os }}
+          Branch=${{ github.ref_name }}
+          Commit=${{ github.sha }}
+          EOF
+
+          cat > allure-results/executor.json << EOF
+          {
+            "name": "GitHub Actions",
+            "type": "github",
+            "buildOrder": ${{ github.run_number }},
+            "buildName": "Run #${{ github.run_number }}",
+            "buildUrl": "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+            "reportUrl": "https://magdau.github.io/playwright-ts-dulux/",
+            "reportName": "Allure Report"
+          }
+          EOF
 
       - name: Upload Playwright report
         if: always()

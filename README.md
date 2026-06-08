@@ -64,9 +64,20 @@ npm run allure:serve      # generates and serves the report in one step
 On every push to `main`, the CI workflow (`.github/workflows/e2e-tests.yml`):
 1. runs the Playwright suite — the full `@regression` suite (both desktop and mobile scenarios) by default;
    `workflow_dispatch` lets you target a narrower tag (e.g. `@smoke`) via the `grep` input,
-2. generates the Allure report from the results (`npm run allure:generate`),
-3. uploads the raw `allure-results/` as a build artifact, and
-4. publishes the generated `allure-report/` to the `gh-pages` branch via `peaceiris/actions-gh-pages`,
+2. enriches the raw results before generating the report:
+   - **History/Trend** — checks out the previously published report from `gh-pages` and restores its
+     `history/` folder into `allure-results/`, so the **Trends** widget builds up a pass/fail/duration graph
+     across runs instead of resetting every time,
+   - **Environment** — writes `allure-results/environment.properties` (target URL, browsers, OS, branch, commit)
+     so the report's **Environment** widget shows what the run actually covered,
+   - **Executors** — writes `allure-results/executor.json` linking the report back to the GitHub Actions run
+     that produced it (build number, build URL, report URL), shown in the **Executors** widget,
+   - **Categories** — copies the project's defect taxonomy from [`allure/categories.json`](allure/categories.json)
+     (Product defects / Test-locator defects / Timeouts / Flaky-passed-on-retry) into `allure-results/`, so
+     failures land in the **Categories** tab pre-classified instead of as one undifferentiated pile,
+3. generates the Allure report from the enriched results (`npm run allure:generate`),
+4. uploads the raw `allure-results/` as a build artifact, and
+5. publishes the generated `allure-report/` to the `gh-pages` branch via `peaceiris/actions-gh-pages`,
    which GitHub Pages then serves at https://magdau.github.io/playwright-ts-dulux/
 
 To view it: open the link above, or check the **Actions** tab → latest run on `main` → download the
@@ -79,6 +90,11 @@ npm test
 npm run allure:generate
 npm run allure:open      # or: npm run allure:serve
 ```
+
+`npm run allure:generate` always copies the project's `allure/categories.json` into the results first, so the
+**Categories** tab is classified locally too. **Trends**, **Environment** and **Executors** are populated only
+in CI, where the previous report's history and the build context (URL, branch, commit, GitHub Actions run) are
+actually available — running locally just won't show those widgets.
 
 ## Test cases
 
