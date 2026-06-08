@@ -1,0 +1,12 @@
+node_modules
+test-results
+playwright-report
+blob-report
+allure-results
+allure-report
+playwright/.auth
+playwright/.cache
+screenshots
+.git
+.idea
+*.log
