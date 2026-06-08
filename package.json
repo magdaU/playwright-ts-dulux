@@ -8,6 +8,7 @@
     "test:smoke": "playwright test --grep @smoke",
     "test:desktop": "playwright test --project=desktop-chrome",
     "test:mobile": "playwright test --project=mobile-chrome",
+    "test:api": "playwright test --project=api",
     "report": "playwright show-report",
     "allure:generate": "allure generate allure-results --clean -o allure-report",
     "allure:open": "allure open allure-report",

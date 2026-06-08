@@ -17,8 +17,12 @@ risk-based prioritisation, and what's intentionally out of scope.
 tests/
 ├── pages/            # Page objects (HomePage, ColorSelectionPage, CartPage, ...)
 ├── components/       # Shared UI components (NavigationComponent, AlertComponent)
+├── setup/            # Global setup (captures storageState once for the whole suite)
+├── constants.ts      # Shared values (BASE_URL, storage state path)
 ├── fixtures.ts       # Custom Playwright test fixtures wiring page objects into tests
-└── specs/            # Test specs grouped by feature area
+└── specs/
+    ├── purchase/     # Tester-purchase journeys (UI, desktop + mobile)
+    └── setup/        # API-level precondition checks (no browser needed)
 ```
 
 ## Getting started
@@ -31,12 +35,13 @@ npx playwright install --with-deps chromium
 ## Running tests
 
 ```bash
-npm test                # run the full suite (desktop + mobile projects)
-npm run test:headed     # run with a visible browser
-npm run test:smoke      # run tests tagged @smoke
-npm run test:desktop    # run only the desktop-chrome project
-npm run test:mobile     # run only the mobile-chrome project
-npm run report          # open the last Playwright HTML report
+npm test                              # run the full suite (api + desktop + mobile projects)
+npm run test:headed                   # run with a visible browser
+npm run test:smoke                    # run tests tagged @smoke
+npm run test:desktop                  # run only the desktop-chrome project
+npm run test:mobile                   # run only the mobile-chrome project
+npm run test:api                      # run only the API precondition checks (no browser)
+npm run report                        # open the last Playwright HTML report
 ```
 
 ## Allure reporting
@@ -125,8 +130,8 @@ applied in this repo (or planned, if not yet implemented).
 |---|---|---|
 | **Test runner** (Playwright Test — TS equivalent of JUnit/TestNG) | `playwright.config.ts`, every file in `tests/specs/**` | Native runner: `test.describe`, tagged `test()`, hooks via fixtures instead of `@BeforeEach`/`@AfterEach` |
 | **Browser Contexts** | `tests/fixtures.ts` (each test gets an isolated `page`/context from Playwright Test), `playwright.config.ts` `projects` (`desktop-chrome` vs `mobile-chrome` carry distinct viewport/device contexts) | No shared cookies/storage between tests — each journey starts clean |
-| **Storage State** | _Not yet implemented_ | Planned: persist post-cookie-consent state via `storageState` and reuse it across specs to skip the repeated `rejectAllCookies()` step |
-| **API Setup** | _Not yet implemented_ | Planned: use Playwright's `request` fixture / `APIRequestContext` to set up or verify state (e.g. basket contents) without driving the UI for every precondition |
+| **Storage State** | `tests/setup/global-setup.ts` + `playwright.config.ts` (`globalSetup`, `use.storageState`) | Cookie-consent is accepted **once** before the whole suite runs and persisted to `playwright/.auth/storage-state.json`; every test then starts already past the consent banner — no repeated `rejectAllCookies()` calls |
+| **API Setup** | `tests/specs/setup/api-setup.spec.ts`, runs in its own `api` project (no browser) | Uses Playwright's `request` fixture / `APIRequestContext` to verify the home page and cart page respond with a 2xx **before** the full UI journey runs — a fast precondition check that doesn't need a browser |
 | **Locators** | `tests/pages/*.ts`, `tests/components/*.ts` | Role/label/text-first locators: `getByRole`, `getByLabel`, `getByText`, plus `filter({ hasText })` and chaining (e.g. `ColorSelectionPage.openVisualizerApp()`) |
 | **Assertions** | `tests/specs/purchase/tester-product.spec.ts` | Web-first, auto-retrying assertions: `expect(locator).toBeVisible()`, `.toHaveValue()`, `.toBeVisible()` on text matchers |
 | **Trace Viewer** | `playwright.config.ts` (`trace: 'on-first-retry'`, `screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`) | Traces are captured on retry and uploaded as part of the Playwright HTML report in CI for failure diagnosis (`npx playwright show-trace`) |
