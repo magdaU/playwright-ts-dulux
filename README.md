@@ -2,6 +2,12 @@
 
 End-to-end tests for [dulux.co.uk](https://www.dulux.co.uk) built with [Playwright Test](https://playwright.dev/) and TypeScript.
 
+[![View Allure Report](https://img.shields.io/badge/Allure%20Report-View%20latest%20results-orange?logo=qameta&logoColor=white)](https://magdau.github.io/playwright-ts-dulux/)
+
+The project produces [Allure](https://allurereport.org/) test reports that are generated and published automatically
+to **GitHub Pages** on every run on `main`. Click the badge above (or [this link](https://magdau.github.io/playwright-ts-dulux/))
+to open the latest test results — no setup required.
+
 ## Project structure
 
 ```
@@ -42,8 +48,26 @@ npm run allure:open       # opens the generated report in a browser
 npm run allure:serve      # generates and serves the report in one step
 ```
 
-In CI, the Allure report is generated after every run, uploaded as a build artifact, and (on `main`) published to
-GitHub Pages via the `gh-pages` branch.
+### Allure report on GitHub Pages
+
+On every push to `main`, the CI workflow (`.github/workflows/e2e-tests.yml`):
+1. runs the Playwright suite — the full `@regression` suite (both desktop and mobile scenarios) by default;
+   `workflow_dispatch` lets you target a narrower tag (e.g. `@smoke`) via the `grep` input,
+2. generates the Allure report from the results (`npm run allure:generate`),
+3. uploads the raw `allure-results/` as a build artifact, and
+4. publishes the generated `allure-report/` to the `gh-pages` branch via `peaceiris/actions-gh-pages`,
+   which GitHub Pages then serves at https://magdau.github.io/playwright-ts-dulux/
+
+To view it: open the link above, or check the **Actions** tab → latest run on `main` → download the
+`playwright-report` / `allure-results` artifacts to inspect locally.
+
+To reproduce the same report locally:
+
+```bash
+npm test
+npm run allure:generate
+npm run allure:open      # or: npm run allure:serve
+```
 
 ## Test cases
 
@@ -86,3 +110,5 @@ GitHub Pages via the `gh-pages` branch.
 - [Playwright Test](https://playwright.dev/docs/intro) — test runner & browser automation
 - TypeScript
 - Page Object Model
+- [Allure Report](https://allurereport.org/) — test reporting (`allure-playwright`, `allure-commandline`)
+- GitHub Actions CI + GitHub Pages — automated runs and published Allure reports
