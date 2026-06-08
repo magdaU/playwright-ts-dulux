@@ -2,8 +2,11 @@
 
 End-to-end tests for [dulux.co.uk](https://www.dulux.co.uk) built with [Playwright Test](https://playwright.dev/) and TypeScript.
 
-The project also produces [Allure](https://allurereport.org/) test reports, which are published automatically to
-**GitHub Pages** on every run on `main`: https://magdau.github.io/playwright-ts-dulux/
+[![View Allure Report](https://img.shields.io/badge/Allure%20Report-View%20latest%20results-orange?logo=qameta&logoColor=white)](https://magdau.github.io/playwright-ts-dulux/)
+
+The project produces [Allure](https://allurereport.org/) test reports that are generated and published automatically
+to **GitHub Pages** on every run on `main`. Click the badge above (or [this link](https://magdau.github.io/playwright-ts-dulux/))
+to open the latest test results — no setup required.
 
 ## Project structure
 
