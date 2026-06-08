@@ -115,3 +115,21 @@ npm run allure:open      # or: npm run allure:serve
 - Page Object Model
 - [Allure Report](https://allurereport.org/) — test reporting (`allure-playwright`, `allure-commandline`)
 - GitHub Actions CI + GitHub Pages — automated runs and published Allure reports
+
+## Common Playwright building blocks — where they're used here
+
+The table below maps the concepts that show up in most Playwright projects to where each one is actually
+applied in this repo (or planned, if not yet implemented).
+
+| Concept | Where it's applied | Notes |
+|---|---|---|
+| **Test runner** (Playwright Test — TS equivalent of JUnit/TestNG) | `playwright.config.ts`, every file in `tests/specs/**` | Native runner: `test.describe`, tagged `test()`, hooks via fixtures instead of `@BeforeEach`/`@AfterEach` |
+| **Browser Contexts** | `tests/fixtures.ts` (each test gets an isolated `page`/context from Playwright Test), `playwright.config.ts` `projects` (`desktop-chrome` vs `mobile-chrome` carry distinct viewport/device contexts) | No shared cookies/storage between tests — each journey starts clean |
+| **Storage State** | _Not yet implemented_ | Planned: persist post-cookie-consent state via `storageState` and reuse it across specs to skip the repeated `rejectAllCookies()` step |
+| **API Setup** | _Not yet implemented_ | Planned: use Playwright's `request` fixture / `APIRequestContext` to set up or verify state (e.g. basket contents) without driving the UI for every precondition |
+| **Locators** | `tests/pages/*.ts`, `tests/components/*.ts` | Role/label/text-first locators: `getByRole`, `getByLabel`, `getByText`, plus `filter({ hasText })` and chaining (e.g. `ColorSelectionPage.openVisualizerApp()`) |
+| **Assertions** | `tests/specs/purchase/tester-product.spec.ts` | Web-first, auto-retrying assertions: `expect(locator).toBeVisible()`, `.toHaveValue()`, `.toBeVisible()` on text matchers |
+| **Trace Viewer** | `playwright.config.ts` (`trace: 'on-first-retry'`, `screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`) | Traces are captured on retry and uploaded as part of the Playwright HTML report in CI for failure diagnosis (`npx playwright show-trace`) |
+| **Parallel Tests** | `playwright.config.ts` (`fullyParallel: true`, `workers: process.env.CI ? 2 : undefined`) | Desktop and mobile projects also run as independent, parallel jobs by default |
+
+See [TEST_STRATEGY.md](TEST_STRATEGY.md) for the reasoning behind these choices.
