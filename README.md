@@ -22,7 +22,8 @@ tests/
 ├── fixtures.ts       # Custom Playwright test fixtures wiring page objects into tests
 └── specs/
     ├── purchase/     # Tester-purchase journeys (UI, desktop + mobile)
-    └── setup/        # API-level precondition checks (no browser needed)
+    ├── setup/        # API-level precondition checks (no browser needed)
+    └── showcase/     # Reference specs demonstrating locator/assertion strategies
 ```
 
 ## Getting started
@@ -113,6 +114,15 @@ npm run allure:open      # or: npm run allure:serve
 13. Verify the basket shows "Dulux Colour Tester" and the shade "Gentle Lavender".
 14. Take a screenshot of the basket.
 
+### Locators & assertions showcase
+`tests/specs/showcase/locators-and-assertions.spec.ts` (`@showcase @regression @desktop`)
+
+A reference suite (no purchase flow) that demonstrates the locator and assertion styles used across the project:
+1. **Role-based locators** — find the "Find a colour" button and "Shopping Cart" link by their accessible role + name, and assert they're visible/enabled.
+2. **Text locators** — find the "I have some colours in mind" call-to-action by its rendered text and assert its exact text content.
+3. **Count assertions** — assert how many "Bathroom" buttons and list items appear on the page (`toHaveCount`).
+4. **Page-level assertions** — navigate to the colour finder and assert the URL and title update (`toHaveURL`, `toHaveTitle`), auto-retrying until the navigation settles.
+
 ## Tech stack
 
 - [Playwright Test](https://playwright.dev/docs/intro) — test runner & browser automation
@@ -132,8 +142,8 @@ applied in this repo (or planned, if not yet implemented).
 | **Browser Contexts** | `tests/fixtures.ts` (each test gets an isolated `page`/context from Playwright Test), `playwright.config.ts` `projects` (`desktop-chrome` vs `mobile-chrome` carry distinct viewport/device contexts) | No shared cookies/storage between tests — each journey starts clean |
 | **Storage State** | `tests/setup/global-setup.ts` + `playwright.config.ts` (`globalSetup`, `use.storageState`) | Cookie-consent is accepted **once** before the whole suite runs and persisted to `playwright/.auth/storage-state.json`; every test then starts already past the consent banner — no repeated `rejectAllCookies()` calls |
 | **API Setup** | `tests/specs/setup/api-setup.spec.ts`, runs in its own `api` project (no browser) | Uses Playwright's `request` fixture / `APIRequestContext` to verify the home page and cart page respond with a 2xx **before** the full UI journey runs — a fast precondition check that doesn't need a browser |
-| **Locators** | `tests/pages/*.ts`, `tests/components/*.ts` | Role/label/text-first locators: `getByRole`, `getByLabel`, `getByText`, plus `filter({ hasText })` and chaining (e.g. `ColorSelectionPage.openVisualizerApp()`) |
-| **Assertions** | `tests/specs/purchase/tester-product.spec.ts` | Web-first, auto-retrying assertions: `expect(locator).toBeVisible()`, `.toHaveValue()`, `.toBeVisible()` on text matchers |
+| **Locators** | `tests/pages/*.ts`, `tests/components/*.ts`, showcased end-to-end in `tests/specs/showcase/locators-and-assertions.spec.ts` | Role/text-first locators: `getByRole`, `getByText`, plus `filter({ hasText })` and chaining (e.g. `ColorSelectionPage.openVisualizerApp()`) |
+| **Assertions** | `tests/specs/purchase/tester-product.spec.ts`, `tests/specs/showcase/locators-and-assertions.spec.ts` | Web-first, auto-retrying assertions: `toBeVisible()`, `toBeEnabled()`, `toHaveText()`, `toHaveValue()`, `toHaveCount()`, and page-level `toHaveURL()` / `toHaveTitle()` |
 | **Trace Viewer** | `playwright.config.ts` (`trace: 'on-first-retry'`, `screenshot: 'only-on-failure'`, `video: 'retain-on-failure'`) | Traces are captured on retry and uploaded as part of the Playwright HTML report in CI for failure diagnosis (`npx playwright show-trace`) |
 | **Parallel Tests** | `playwright.config.ts` (`fullyParallel: true`, `workers: process.env.CI ? 2 : undefined`) | Desktop and mobile projects also run as independent, parallel jobs by default |
 
