@@ -8,6 +8,9 @@ The project produces [Allure](https://allurereport.org/) test reports that are g
 to **GitHub Pages** on every run on `main`. Click the badge above (or [this link](https://magdau.github.io/playwright-ts-dulux/))
 to open the latest test results — no setup required.
 
+See [TEST_STRATEGY.md](TEST_STRATEGY.md) for the approach behind this suite — scope, tagging, environments,
+risk-based prioritisation, and what's intentionally out of scope.
+
 ## Project structure
 
 ```
